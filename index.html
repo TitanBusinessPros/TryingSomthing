@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Deep Sea Gem Diver</title>
+    
+    <!-- FAVICON: Replace this URL with your GitHub raw image link -->
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/favicon.png">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom, #000428, #004e92);
+            min-height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            touch-action: manipulation;
+            padding: 10px;
+        }
+        
+        /* Music Player Styles */
+        .music-player {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 50, 100, 0.8);
+            padding: 10px 15px;
+            border-radius: 10px;
+            border: 2px solid #00b7ff;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .music-player label {
+            font-size: 0.9rem;
+            color: #88ddff;
+        }
+        
+        .volume-slider {
+            width: 100px;
+            height: 5px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #00b7ff;
+            outline: none;
+            border-radius: 5px;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            background: #fff;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid #00b7ff;
+        }
+        
+        .volume-slider::-moz-range-thumb {
+            width: 15px;
+            height: 15px;
+            background: #fff;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid #00b7ff;
+        }
+        
+        .game-header {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 0 10px;
+            gap: 15px;
+        }
+        
+        .score-container, .gems-container, .highscore-container {
+            padding: 12px 20px;
+            border-radius: 15px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            font-size: 1rem;
+            text-align: center;
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .score-container, .gems-container {
+            background: rgba(0, 100, 200, 0.7);
+            border: 2px solid #00b7ff;
+        }
+        
+        .highscore-container {
+            background: rgba(255, 215, 0, 0.7);
+            border: 2px solid #ffd700;
+        }
+        
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            height: 65vh;
+            min-height: 400px;
+            background: linear-gradient(to bottom, #001a33, #003366);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            border: 3px solid #00b7ff;
+        }
+        
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 20, 40, 0.95);
+            z-index: 20;
+            transition: opacity 0.5s;
+            text-align: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .screen h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #00b7ff;
+            text-shadow: 0 0 10px #00b7ff;
+        }
+        
+        .screen h2 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #00b7ff;
+        }
+        
+        .screen p {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            max-width: 90%;
+            color: #88ddff;
+            line-height: 1.4;
+        }
+        
+        .btn {
+            background: linear-gradient(to bottom, #00b7ff, #0077cc);
+            color: white;
+            border: none;
+            padding: 14px 35px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, background 0.3s;
+            margin-top: 15px;
+            border: 2px solid #88ddff;
+            min-width: 180px;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(to bottom, #0099dd, #0055aa);
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(to bottom, #666, #444);
+        }
+        
+        .btn-secondary:hover {
+            background: linear-gradient(to bottom, #555, #333);
+        }
+        
+        .game-area {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .diver {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            z-index: 5;
+            transition: transform 0.2s;
+            user-select: none;
+            filter: drop-shadow(0 0 5px #00b7ff);
+        }
+        
+        .diver img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .shark {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            z-index: 6;
+            user-select: none;
+            filter: drop-shadow(0 0 5px #ff4444);
+        }
+        
+        .shark img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .blowfish {
+            position: absolute;
+            width: 45px;
+            height: 45px;
+            z-index: 3;
+            user-select: none;
+            animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 5px #ffaa00);
+        }
+        
+        .blowfish img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .coral {
+            position: absolute;
+            width: 55px;
+            height: 55px;
+            z-index: 4;
+            user-select: none;
+            filter: drop-shadow(0 0 3px #ff6b6b);
+        }
+        
+        /* Orange Coral - default size, orange glow */
+        .coral-coral {
+            width: 55px;
+            height: 55px;
+            filter: drop-shadow(0 0 5px #ff8844);
+        }
+        
+        /* Blue Coral - slightly bigger, blue glow */
+        .coral-coral2 {
+            width: 65px;
+            height: 65px;
+            filter: drop-shadow(0 0 8px #00bbff);
+        }
+        
+        /* Small Cluster - smaller, purple glow */
+        .coral-coral3 {
+            width: 45px;
+            height: 45px;
+            filter: drop-shadow(0 0 6px #ff44ff);
+        }
+        
+        .coral img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .seaweed {
+            position: absolute;
+            width: 40px;
+            height: 80px;
+            z-index: 2;
+        }
+        
+        .seaweed img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .gem {
+            position: absolute;
+            width: 35px;
+            height: 35px;
+            z-index: 4;
+            user-select: none;
+            animation: float 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 8px currentColor);
+        }
+        
+        .gem img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .safe-zone {
+            position: absolute;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            opacity: 0.9;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .safe-zone img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 20px;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        .bubble {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .instructions {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #88ddff;
+            max-width: 90%;
+        }
+        
+        .character-selection {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-height: 50vh;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        
+        .character-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+            background: rgba(0, 100, 200, 0.3);
+            min-width: 120px;
+            flex-shrink: 0;
+            pointer-events: auto;
+        }
+        
+        .character-option:hover {
+            transform: scale(1.05);
+            background: rgba(0, 100, 200, 0.5);
+        }
+        
+        .character-option.selected {
+            border-color: #00ff00;
+            background: rgba(0, 255, 0, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+        
+        .character-option img {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 8px;
+            object-fit: contain;
+            pointer-events: none;
+        }
+        
+        .character-option span {
+            font-size: 0.95rem;
+            color: white;
+            font-weight: bold;
+            pointer-events: none;
+        }
+        
+        .coral-warning {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            z-index: 30;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        @media (max-width: 600px) {
+            .screen h1 {
+                font-size: 2rem;
+            }
+            
+            .screen h2 {
+                font-size: 1.5rem;
+            }
+            
+            .screen p {
+                font-size: 1rem;
+            }
+            
+            .btn {
+                font-size: 1rem;
+                padding: 12px 28px;
+                min-width: 150px;
+            }
+            
+            .character-option {
+                min-width: 100px;
+            }
+            
+            .character-option img {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .music-player {
+                top: 5px;
+                right: 5px;
+                padding: 8px 12px;
+            }
+            
+            .volume-slider {
+                width: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- MUSIC PLAYER: Replace the src URL with your GitHub raw MP4 file link -->
+    <div class="music-player">
+        <label for="volumeSlider">🎵</label>
+        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="50">
+    </div>
+    <audio id="backgroundMusic" loop>
+        <source src="https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/background-music.mp4" type="audio/mp4">
+    </audio>
+
+    <div class="game-header">
+        <div class="score-container">
+            Score: <span id="score">0</span>
+        </div>
+        <div class="gems-container">
+            💎 Gems: <span id="gems">0</span>
+        </div>
+        <div class="highscore-container">
+            🏆 High Score: <span id="highScore">0</span>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <div id="startScreen" class="screen">
+            <h1>🌊 Deep Sea Gem Diver 🌊</h1>
+            <p>Dive deep and collect precious gems!</p>
+            <p>Avoid sharks, blowfish, and sharp coral.</p>
+            <p>Rest on green safe zones to recover.</p>
+            <button class="btn" onclick="document.getElementById('startScreen').style.display='none'; document.getElementById('characterScreen').style.display='flex';">Start Game</button>
+        </div>
+
+        <div id="characterScreen" class="screen" style="display: none;">
+            <h2>Choose Your Diver</h2>
+            <div class="character-selection" id="characterSelection">
+                <!-- 
+                    PLAYER TYPE NAMES: Update the span text below to rename each player type
+                    Update the img src URLs with your GitHub raw image links
+                -->
+                <div class="character-option" data-character="player1">
+                    <img src="https://github.com/TitanBusinessPros/DeepSeaGems/raw/main/SquidMan.png" alt="SquidMan">
+                    <span>SquidMan</span>
+                </div>
+                <div class="character-option" data-character="player2">
+                    <img src="https://github.com/TitanBusinessPros/DeepSeaGems/raw/main/AnglerFish.png" alt="AnglerFish">
+                    <span>AnglerFish</span>
+                </div>
+                <div class="character-option" data-character="player3">
+                    <img src="https://github.com/TitanBusinessPros/DeepSeaGems/raw/main/CoarlMan.png" alt="CoralMan">
+                    <span>CoralMan</span>
+                </div>
+                <div class="character-option" data-character="player4">
+                    <img src="https://github.com/TitanBusinessPros/DeepSeaGems/raw/main/LobsterMan.png" alt="LobsterMan">
+                    <span>LobsterMan</span>
+                </div>
+                <div class="character-option" data-character="player5">
+                    <img src="https://github.com/TitanBusinessPros/DeepSeaGems/raw/main/MahiMan.png" alt="MahiMan">
+                    <span>MahiMan</span>
+                </div>
+                <div class="character-option" data-character="player6">
+                    <img src="https://github.com/TitanBusinessPros/DeepSeaGems/raw/main/PurpleMerman.png" alt="Merman">
+                    <span>Merman</span>
+                </div>
+            </div>
+            <button class="btn" id="startGameBtn">Start Diving!</button>
+        </div>
+
+        <div id="gameOverScreen" class="screen" style="display: none;">
+            <h2>Game Over!</h2>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <p>Gems Collected: <span id="finalGems">0</span></p>
+            <button class="btn" id="restartBtn">New Game</button>
+            <button class="btn btn-secondary" id="watchAdBtn">Watch Ad for Extra Life</button>
+        </div>
+
+        <!-- Ad Video Modal -->
+        <div id="adModal" class="screen" style="display: none; z-index: 100;">
+            <h2>Watch this ad for an extra life!</h2>
+            <!-- Zombie Outbreak Honolulu Ad - Vertical Format -->
+            <video id="adVideo" style="max-width: 90%; max-height: 60vh; width: auto; height: auto; border-radius: 10px;" controls>
+                <source src="https://github.com/TitanBusinessPros/Zombie-Outbreak-Honolulu/raw/main/Ad-2-Zombie.mp4" type="video/mp4">
+            </video>
+            <p style="margin-top: 15px; font-size: 0.9rem;">Watch the full ad to continue playing!</p>
+            <button class="btn" id="skipAdBtn" style="display: none;">Continue Playing</button>
+        </div>
+
+        <div class="coral-warning" id="coralWarning">
+            💥 Sharp Coral! 💥
+        </div>
+
+        <div id="gameArea" class="game-area"></div>
+    </div>
+
+    <script>
+        // Game state variables
+        const gameArea = document.getElementById('gameArea');
+        const scoreElement = document.getElementById('score');
+        const gemsElement = document.getElementById('gems');
+        const highScoreElement = document.getElementById('highScore');
+        const finalScoreElement = document.getElementById('finalScore');
+        const finalGemsElement = document.getElementById('finalGems');
+        const startScreen = document.getElementById('startScreen');
+        const characterScreen = document.getElementById('characterScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const restartBtn = document.getElementById('restartBtn');
+        const watchAdBtn = document.getElementById('watchAdBtn');
+        const adModal = document.getElementById('adModal');
+        const adVideo = document.getElementById('adVideo');
+        const skipAdBtn = document.getElementById('skipAdBtn');
+        const startGameBtn = document.getElementById('startGameBtn');
+        const characterSelection = document.getElementById('characterSelection');
+        const coralWarning = document.getElementById('coralWarning');
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const volumeSlider = document.getElementById('volumeSlider');
+
+        // Music player controls
+        volumeSlider.addEventListener('input', function() {
+            backgroundMusic.volume = this.value / 100;
+        });
+        
+        // Set initial volume
+        backgroundMusic.volume = 0.5;
+        
+        // Attempt to play music when user interacts
+        document.addEventListener('click', function playMusic() {
+            backgroundMusic.play().catch(e => console.log('Audio play failed:', e));
+            document.removeEventListener('click', playMusic);
+        }, { once: true });
+
+        let score = 0;
+        let gems = 0;
+        let highScore = localStorage.getItem('deepSeaHighScore') || 0;
+        highScoreElement.textContent = highScore;
+        let gameActive = false;
+        let selectedCharacter = 'player1'; // Default to first player
+
+        // Character selection system
+        const characters = {
+            player1: 'https://github.com/TitanBusinessPros/DeepSeaGems/raw/main/SquidMan.png',
+            player2: 'https://github.com/TitanBusinessPros/DeepSeaGems/raw/main/AnglerFish.png',
+            player3: 'https://github.com/TitanBusinessPros/DeepSeaGems/raw/main/CoarlMan.png',
+            player4: 'https://github.com/TitanBusinessPros/DeepSeaGems/raw/main/LobsterMan.png',
+            player5: 'https://github.com/TitanBusinessPros/DeepSeaGems/raw/main/MahiMan.png',
+            player6: 'https://github.com/TitanBusinessPros/DeepSeaGems/raw/main/PurpleMerman.png'
+        };
+
+        // Game element image URLs - UPDATE THESE with your GitHub raw links
+        const gameImages = {
+            shark: 'https://github.com/TitanBusinessPros/DeepSeaGems/raw/main/Shark.png',
+            blowfish: 'https://github.com/TitanBusinessPros/DeepSeaGems/raw/main/BlowFish.png',
+            coral: 'https://github.com/TitanBusinessPros/DeepSeaGems/raw/main/OrangeCoral.png',
+            coral2: 'https://github.com/TitanBusinessPros/DeepSeaGems/raw/main/BlueCoral.png',
+            coral3: 'https://github.com/TitanBusinessPros/DeepSeaGems/raw/main/SmallCluster.png',
+            seaweed: 'https://github.com/TitanBusinessPros/DeepSeaGems/raw/main/Seaweed.png',
+            kelpbed: 'https://github.com/TitanBusinessPros/DeepSeaGems/raw/main/KelpBed.png',
+            gem: 'https://github.com/TitanBusinessPros/DeepSeaGems/raw/main/transparentGem.png'
+        };
+
+        // Character selection - use event delegation
+        characterSelection.addEventListener('click', function(e) {
+            const option = e.target.closest('.character-option');
+            if (!option) return;
+            
+            // Remove selected from all
+            document.querySelectorAll('.character-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Add selected to clicked one
+            option.classList.add('selected');
+            selectedCharacter = option.getAttribute('data-character');
+            console.log('Selected:', selectedCharacter);
+        });
+        
+        // Select first character by default when page loads
+        setTimeout(() => {
+            const firstOption = document.querySelector('.character-option');
+            if (firstOption) {
+                firstOption.classList.add('selected');
+                selectedCharacter = firstOption.getAttribute('data-character');
+                console.log('Default selected:', selectedCharacter);
+            }
+        }, 100);
+
+        startGameBtn.addEventListener('click', () => {
+            console.log('Start button clicked, selected character:', selectedCharacter);
+            if (selectedCharacter) {
+                characterScreen.style.display = 'none';
+                initGame();
+            }
+        });
+
+        const diverPosition = {
+            x: 0,
+            y: 0
+        };
+        
+        let diverVelocity = 0;
+        let isMovingLeft = false;
+        let isMovingRight = false;
+        
+        let sharks = [];
+        let blowfishes = [];
+        let corals = [];
+        let gemsArray = [];
+        let safeZones = [];
+        let seaweeds = [];
+        
+        const GRAVITY = 0.25;
+        const SWIM_FORCE = -6;
+        const HORIZONTAL_SPEED = 5;
+        const SCROLL_SPEED = 2;
+        const OBSTACLE_GAP = 250;
+        
+        let gameLoopInterval;
+        let sharkInterval;
+        let blowfishInterval;
+        let bubbleInterval;
+
+        function initGame() {
+            score = 0;
+            gems = 0;
+            gameActive = true;
+            
+            // Reset movement flags
+            isMovingLeft = false;
+            isMovingRight = false;
+            
+            sharks = [];
+            blowfishes = [];
+            corals = [];
+            gemsArray = [];
+            safeZones = [];
+            seaweeds = [];
+            
+            gameArea.innerHTML = '';
+            
+            const gameWidth = gameArea.offsetWidth;
+            const gameHeight = gameArea.offsetHeight;
+            
+            diverPosition.x = gameWidth / 2 - 30;
+            diverPosition.y = gameHeight - 100;
+            diverVelocity = 0;
+            
+            createDiver();
+            
+            // Create a starting kelp bed under the player for new players
+            createSafeZone(diverPosition.x - 35, diverPosition.y + 60, 120, 50);
+            
+            createInitialEnvironment();
+            
+            updateUI();
+            
+            clearInterval(gameLoopInterval);
+            clearInterval(sharkInterval);
+            clearInterval(blowfishInterval);
+            clearInterval(bubbleInterval);
+            
+            gameLoopInterval = setInterval(gameLoop, 1000 / 60);
+            sharkInterval = setInterval(spawnShark, 3000);
+            blowfishInterval = setInterval(spawnBlowfish, 4000);
+            bubbleInterval = setInterval(createBubble, 500);
+        }
+
+        function createDiver() {
+            const diverElement = document.createElement('div');
+            diverElement.className = 'diver';
+            diverElement.id = 'diver';
+            const img = document.createElement('img');
+            img.src = characters[selectedCharacter];
+            img.alt = 'Diver';
+            diverElement.appendChild(img);
+            gameArea.appendChild(diverElement);
+        }
+
+        function createShark(x, y) {
+            const shark = document.createElement('div');
+            shark.className = 'shark';
+            const img = document.createElement('img');
+            img.src = gameImages.shark;
+            img.alt = 'Shark';
+            shark.appendChild(img);
+            shark.style.left = x + 'px';
+            shark.style.top = y + 'px';
+            gameArea.appendChild(shark);
+            
+            // Determine direction based on spawn position
+            const direction = x < 0 ? 1 : -1; // Left side = move right, Right side = move left
+            
+            // Flip image if moving RIGHT (opposite of what we had)
+            if (direction === 1) {
+                img.style.transform = 'scaleX(-1)';
+            }
+            
+            const sharkObj = {
+                element: shark,
+                x: x,
+                y: y,
+                speed: 2 + Math.random() * 2,
+                direction: direction,
+                active: true
+            };
+            
+            sharks.push(sharkObj);
+            return sharkObj;
+        }
+
+        function createBlowfish(x, y) {
+            const blowfish = document.createElement('div');
+            blowfish.className = 'blowfish';
+            const img = document.createElement('img');
+            img.src = gameImages.blowfish;
+            img.alt = 'Blowfish';
+            blowfish.appendChild(img);
+            blowfish.style.left = x + 'px';
+            blowfish.style.top = y + 'px';
+            gameArea.appendChild(blowfish);
+            
+            // Random horizontal direction
+            const direction = Math.random() > 0.5 ? 1 : -1;
+            
+            // Flip image if moving left
+            if (direction === -1) {
+                img.style.transform = 'scaleX(-1)';
+            }
+            
+            const blowfishObj = {
+                element: blowfish,
+                img: img,
+                x: x,
+                y: y,
+                baseY: y,
+                speed: 1 + Math.random(),
+                direction: direction,
+                active: true,
+                time: 0
+            };
+            
+            blowfishes.push(blowfishObj);
+            return blowfishObj;
+        }
+
+        function createCoral(x, y) {
+            const coral = document.createElement('div');
+            
+            // Randomly choose one of the three coral types - equal chance
+            const coralTypes = ['coral', 'coral2', 'coral3'];
+            const randomCoral = coralTypes[Math.floor(Math.random() * coralTypes.length)];
+            
+            // Add both general coral class AND specific type class
+            coral.className = 'coral coral-' + randomCoral;
+            
+            const img = document.createElement('img');
+            img.src = gameImages[randomCoral];
+            img.alt = 'Coral';
+            
+            coral.appendChild(img);
+            coral.style.left = x + 'px';
+            coral.style.top = y + 'px';
+            gameArea.appendChild(coral);
+            
+            corals.push({ element: coral, x: x, y: y });
+        }
+
+        function createGem(x, y) {
+            const gem = document.createElement('div');
+            gem.className = 'gem';
+            const img = document.createElement('img');
+            img.src = gameImages.gem;
+            img.alt = 'Gem';
+            gem.appendChild(img);
+            gem.style.left = x + 'px';
+            gem.style.top = y + 'px';
+            gameArea.appendChild(gem);
+            
+            const colors = ['#ff1493', '#00ffff', '#ffd700', '#9370db', '#00ff00'];
+            gem.style.color = colors[Math.floor(Math.random() * colors.length)];
+            
+            gemsArray.push({ element: gem, x: x, y: y, collected: false });
+        }
+
+        function createSafeZone(x, y, width, height) {
+            const zone = document.createElement('div');
+            zone.className = 'safe-zone';
+            const img = document.createElement('img');
+            img.src = gameImages.kelpbed;
+            img.alt = 'Kelp Bed';
+            zone.appendChild(img);
+            zone.style.left = x + 'px';
+            zone.style.top = y + 'px';
+            zone.style.width = width + 'px';
+            zone.style.height = height + 'px';
+            gameArea.appendChild(zone);
+            
+            safeZones.push({ element: zone, x: x, y: y, width: width, height: height });
+        }
+
+        function createSeaweed() {
+            const gameWidth = gameArea.offsetWidth;
+            const gameHeight = gameArea.offsetHeight;
+            
+            // Create decorative seaweed randomly scattered at bottom area
+            for (let i = 0; i < 12; i++) {
+                const seaweed = document.createElement('div');
+                seaweed.className = 'seaweed';
+                const img = document.createElement('img');
+                img.src = gameImages.seaweed;
+                img.alt = 'Seaweed';
+                seaweed.appendChild(img);
+                
+                const width = 30 + Math.random() * 30;
+                const height = 60 + Math.random() * 50;
+                seaweed.style.width = width + 'px';
+                seaweed.style.height = height + 'px';
+                // Randomly position across entire width
+                seaweed.style.left = (Math.random() * gameWidth) + 'px';
+                // Randomly position in bottom 30% of screen
+                seaweed.style.top = (gameHeight * 0.7 + Math.random() * gameHeight * 0.3) + 'px';
+                gameArea.appendChild(seaweed);
+                seaweeds.push(seaweed);
+            }
+        }
+
+        function createBubble() {
+            if (!gameActive) return;
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            const size = 5 + Math.random() * 15;
+            bubble.style.width = size + 'px';
+            bubble.style.height = size + 'px';
+            bubble.style.left = Math.random() * gameArea.offsetWidth + 'px';
+            bubble.style.bottom = '0';
+            gameArea.appendChild(bubble);
+            
+            const speed = 1 + Math.random() * 2;
+            let currentBottom = 0;
+            
+            const bubbleInterval = setInterval(() => {
+                currentBottom += speed;
+                bubble.style.bottom = currentBottom + 'px';
+                
+                if (currentBottom > gameArea.offsetHeight) {
+                    clearInterval(bubbleInterval);
+                    bubble.remove();
+                }
+            }, 20);
+        }
+
+        function createInitialEnvironment() {
+            const gameWidth = gameArea.offsetWidth;
+            const gameHeight = gameArea.offsetHeight;
+            
+            for (let i = 0; i < 8; i++) {
+                const x = 30 + Math.random() * (gameWidth - 160);
+                const y = gameHeight - 150 - (i * OBSTACLE_GAP);
+                
+                if (Math.random() > 0.5) {
+                    createCoral(x, y);
+                } else {
+                    createSafeZone(x, y, 100 + Math.random() * 60, 50);
+                }
+                
+                // Always spawn a gem with each obstacle
+                createGem(x + 30, y - 60);
+            }
+        }
+
+        function createDecorativeSeaweed(x, y) {
+            const seaweed = document.createElement('div');
+            seaweed.className = 'seaweed';
+            const img = document.createElement('img');
+            img.src = gameImages.seaweed;
+            img.alt = 'Seaweed';
+            seaweed.appendChild(img);
+            
+            const width = 25 + Math.random() * 20;
+            const height = 50 + Math.random() * 40;
+            seaweed.style.width = width + 'px';
+            seaweed.style.height = height + 'px';
+            seaweed.style.left = x + 'px';
+            seaweed.style.top = y + 'px';
+            seaweed.style.opacity = '0.6';
+            gameArea.appendChild(seaweed);
+            
+            // Track decorative seaweed for cleanup
+            safeZones.push({ element: seaweed, x: x, y: y, width: width, height: height, isSeaweed: true });
+        }
+
+        function spawnShark() {
+            if (!gameActive) return;
+            
+            const gameWidth = gameArea.offsetWidth;
+            const gameHeight = gameArea.offsetHeight;
+            
+            // Sharks ALWAYS spawn from left or right side (off-screen)
+            const side = Math.random() > 0.5 ? 'left' : 'right';
+            const x = side === 'left' ? -60 : gameWidth + 10;
+            
+            // Pick a Y position that's NOT near the player (200px buffer)
+            let y;
+            let attempts = 0;
+            do {
+                y = Math.random() * (gameHeight - 150);
+                attempts++;
+            } while (Math.abs(y - diverPosition.y) < 200 && attempts < 5);
+            
+            // If still too close, offset it above or below player
+            if (Math.abs(y - diverPosition.y) < 200) {
+                y = diverPosition.y > gameHeight / 2 ? 50 : gameHeight - 200;
+            }
+            
+            createShark(x, y);
+        }
+
+        function spawnBlowfish() {
+            if (!gameActive) return;
+            
+            const gameWidth = gameArea.offsetWidth;
+            
+            // Blowfish spawn from TOP of screen at random X position
+            let x;
+            let attempts = 0;
+            do {
+                x = Math.random() * (gameWidth - 100);
+                attempts++;
+            } while (Math.abs(x - diverPosition.x) < 150 && attempts < 5);
+            
+            // If still too close horizontally, offset it to the side
+            if (Math.abs(x - diverPosition.x) < 150) {
+                x = diverPosition.x > gameWidth / 2 ? 50 : gameWidth - 150;
+            }
+            
+            const y = -50; // Always spawn from top, off-screen
+            
+            createBlowfish(x, y);
+        }
+
+        function makeDiverSwim() {
+            if (gameActive) {
+                diverVelocity = SWIM_FORCE;
+            }
+        }
+
+        function gameLoop() {
+            if (!gameActive) return;
+            
+            diverVelocity += GRAVITY;
+            diverPosition.y += diverVelocity;
+            
+            if (isMovingLeft) {
+                diverPosition.x = Math.max(0, diverPosition.x - HORIZONTAL_SPEED);
+            }
+            if (isMovingRight) {
+                diverPosition.x = Math.min(gameArea.offsetWidth - 60, diverPosition.x + HORIZONTAL_SPEED);
+            }
+            
+            const diver = document.getElementById('diver');
+            if (diver) {
+                diver.style.left = diverPosition.x + 'px';
+                diver.style.top = diverPosition.y + 'px';
+                
+                if (diverVelocity < 0) {
+                    diver.style.transform = 'rotate(-10deg)';
+                } else {
+                    diver.style.transform = 'rotate(10deg)';
+                }
+            }
+            
+            if (diverPosition.y < 0 || diverPosition.y > gameArea.offsetHeight) {
+                gameOver();
+                return;
+            }
+            
+            scrollEnvironment();
+            updateSharks();
+            updateBlowfish();
+            checkCollisions();
+            checkGemCollection();
+            checkSafeZone();
+            checkCoralCollision();
+            checkSharkCollisions();
+            checkBlowfishCollisions();
+            createNewEnvironment();
+        }
+
+        function scrollEnvironment() {
+            if (diverPosition.y < gameArea.offsetHeight * 0.4) {
+                const scrollAmount = (gameArea.offsetHeight * 0.4 - diverPosition.y) * 0.1;
+                
+                diverPosition.y += scrollAmount;
+                
+                corals.forEach(coral => {
+                    coral.y += scrollAmount;
+                    coral.element.style.top = coral.y + 'px';
+                });
+                
+                safeZones.forEach(zone => {
+                    zone.y += scrollAmount;
+                    zone.element.style.top = zone.y + 'px';
+                });
+                
+                gemsArray.forEach(gem => {
+                    gem.y += scrollAmount;
+                    gem.element.style.top = gem.y + 'px';
+                });
+                
+                sharks.forEach(shark => {
+                    shark.y += scrollAmount;
+                    shark.element.style.top = shark.y + 'px';
+                });
+                
+                blowfishes.forEach(blowfish => {
+                    blowfish.y += scrollAmount;
+                    blowfish.baseY += scrollAmount;
+                    blowfish.element.style.top = blowfish.y + 'px';
+                });
+                
+                score += Math.floor(scrollAmount / 2);
+                updateUI();
+            }
+        }
+
+        function updateSharks() {
+            sharks.forEach((shark, index) => {
+                if (!shark.active) return;
+                
+                // Sharks just swim in their direction, don't chase player
+                shark.x += shark.direction * shark.speed;
+                
+                shark.element.style.left = shark.x + 'px';
+                
+                if (shark.x < -80 || shark.x > gameArea.offsetWidth + 20 || shark.y > gameArea.offsetHeight + 50) {
+                    shark.element.remove();
+                    sharks.splice(index, 1);
+                }
+            });
+        }
+
+        function updateBlowfish() {
+            blowfishes.forEach((blowfish, index) => {
+                if (!blowfish.active) return;
+                
+                blowfish.time += 0.05;
+                blowfish.y = blowfish.baseY + Math.sin(blowfish.time) * 20;
+                blowfish.element.style.top = blowfish.y + 'px';
+                
+                // Move horizontally
+                blowfish.x += blowfish.direction * blowfish.speed * 0.5;
+                blowfish.element.style.left = blowfish.x + 'px';
+                
+                // Remove if off screen
+                if (blowfish.y > gameArea.offsetHeight + 50 || blowfish.x < -80 || blowfish.x > gameArea.offsetWidth + 20) {
+                    blowfish.element.remove();
+                    blowfishes.splice(index, 1);
+                }
+            });
+        }
+
+        function checkCollisions() {
+            // Collision checking handled by specific functions
+        }
+
+        function checkGemCollection() {
+            gemsArray.forEach((gem, index) => {
+                if (gem.collected) return;
+                
+                const diverBounds = {
+                    left: diverPosition.x + 10,
+                    right: diverPosition.x + 50,
+                    top: diverPosition.y + 10,
+                    bottom: diverPosition.y + 50
+                };
+                
+                const gemBounds = {
+                    left: gem.x,
+                    right: gem.x + 35,
+                    top: gem.y,
+                    bottom: gem.y + 35
+                };
+                
+                if (diverBounds.right > gemBounds.left && 
+                    diverBounds.left < gemBounds.right && 
+                    diverBounds.bottom > gemBounds.top && 
+                    diverBounds.top < gemBounds.bottom) {
+                    
+                    gem.collected = true;
+                    gem.element.remove();
+                    gemsArray.splice(index, 1);
+                    gems++;
+                    score += 50;
+                    updateUI();
+                }
+            });
+        }
+
+        function checkSafeZone() {
+            let inSafeZone = false;
+            
+            for (const zone of safeZones) {
+                // Skip decorative seaweed (no collision)
+                if (zone.isSeaweed) continue;
+                
+                const diverBounds = {
+                    left: diverPosition.x + 15,
+                    right: diverPosition.x + 45,
+                    top: diverPosition.y + 10,
+                    bottom: diverPosition.y + 50
+                };
+                
+                const zoneBounds = {
+                    left: zone.x,
+                    right: zone.x + zone.width,
+                    top: zone.y,
+                    bottom: zone.y + zone.height
+                };
+                
+                if (diverBounds.right > zoneBounds.left && 
+                    diverBounds.left < zoneBounds.right && 
+                    diverBounds.bottom > zoneBounds.top && 
+                    diverBounds.top < zoneBounds.bottom) {
+                    
+                    inSafeZone = true;
+                    if (diverVelocity > 0) {
+                        diverVelocity = 0;
+                        diverPosition.y = zone.y - 40;
+                    }
+                    break;
+                }
+            }
+        }
+
+        function checkCoralCollision() {
+            for (const coral of corals) {
+                const diverBounds = {
+                    left: diverPosition.x + 15,
+                    right: diverPosition.x + 45,
+                    top: diverPosition.y + 10,
+                    bottom: diverPosition.y + 35
+                };
+                
+                const coralBounds = {
+                    left: coral.x + 10,
+                    right: coral.x + 50,
+                    top: coral.y + 10,
+                    bottom: coral.y + 50
+                };
+                
+                if (diverBounds.right > coralBounds.left && 
+                    diverBounds.left < coralBounds.right && 
+                    diverBounds.bottom > coralBounds.top && 
+                    diverBounds.top < coralBounds.bottom) {
+                    
+                    coralWarning.style.display = 'block';
+                    setTimeout(() => {
+                        coralWarning.style.display = 'none';
+                    }, 1000);
+                    
+                    gameOver();
+                    break;
+                }
+            }
+        }
+
+        function checkSharkCollisions() {
+            for (const shark of sharks) {
+                if (!shark.active) continue;
+                
+                const diverBounds = {
+                    left: diverPosition.x + 15,
+                    right: diverPosition.x + 45,
+                    top: diverPosition.y + 10,
+                    bottom: diverPosition.y + 35
+                };
+                
+                const sharkBounds = {
+                    left: shark.x + 15,
+                    right: shark.x + 45,
+                    top: shark.y + 15,
+                    bottom: shark.y + 45
+                };
+                
+                if (diverBounds.right > sharkBounds.left && 
+                    diverBounds.left < sharkBounds.right && 
+                    diverBounds.bottom > sharkBounds.top && 
+                    diverBounds.top < sharkBounds.bottom) {
+                    
+                    shark.active = false;
+                    shark.element.remove();
+                    sharks = sharks.filter(s => s !== shark);
+                    gameOver();
+                    break;
+                }
+            }
+        }
+
+        function checkBlowfishCollisions() {
+            for (const blowfish of blowfishes) {
+                if (!blowfish.active) continue;
+                
+                const diverBounds = {
+                    left: diverPosition.x + 15,
+                    right: diverPosition.x + 45,
+                    top: diverPosition.y + 10,
+                    bottom: diverPosition.y + 35
+                };
+                
+                const blowfishBounds = {
+                    left: blowfish.x + 10,
+                    right: blowfish.x + 40,
+                    top: blowfish.y + 10,
+                    bottom: blowfish.y + 40
+                };
+                
+                if (diverBounds.right > blowfishBounds.left && 
+                    diverBounds.left < blowfishBounds.right && 
+                    diverBounds.bottom > blowfishBounds.top && 
+                    diverBounds.top < blowfishBounds.bottom) {
+                    
+                    blowfish.active = false;
+                    blowfish.element.remove();
+                    blowfishes = blowfishes.filter(b => b !== blowfish);
+                    gameOver();
+                    break;
+                }
+            }
+        }
+
+        function createNewEnvironment() {
+            let highestObjectY = Infinity;
+            [...corals, ...safeZones].forEach(obj => {
+                if (obj.y < highestObjectY) highestObjectY = obj.y;
+            });
+            
+            if (highestObjectY > -OBSTACLE_GAP) {
+                const gameWidth = gameArea.offsetWidth;
+                const numNewObjects = 2 + Math.floor(Math.random() * 2);
+                
+                for (let i = 0; i < numNewObjects; i++) {
+                    const x = 30 + Math.random() * (gameWidth - 160);
+                    const y = highestObjectY - OBSTACLE_GAP - (Math.random() * OBSTACLE_GAP * 0.3);
+                    
+                    if (Math.random() > 0.5) {
+                        createCoral(x, y);
+                    } else {
+                        createSafeZone(x, y, 100 + Math.random() * 60, 50);
+                    }
+                    
+                    // Always spawn a gem with each obstacle
+                    createGem(x + 30, y - 60);
+                }
+            }
+            
+            // Clean up old objects that have scrolled off screen
+            if (corals.length + safeZones.length > 30) {
+                // Remove corals that are far off screen
+                corals = corals.filter(coral => {
+                    if (coral.y > gameArea.offsetHeight + 200) {
+                        coral.element.remove();
+                        return false;
+                    }
+                    return true;
+                });
+                
+                // Remove safe zones that are far off screen
+                safeZones = safeZones.filter(zone => {
+                    if (zone.y > gameArea.offsetHeight + 200) {
+                        zone.element.remove();
+                        return false;
+                    }
+                    return true;
+                });
+            }
+            
+            // Clean up gems that are off screen or limit total gems
+            gemsArray = gemsArray.filter(gem => {
+                if (gem.collected) {
+                    gem.element.remove();
+                    return false;
+                }
+                if (gem.y > gameArea.offsetHeight + 100) {
+                    gem.element.remove();
+                    return false;
+                }
+                return true;
+            });
+        }
+
+        function startMovingLeft() { isMovingLeft = true; }
+        function startMovingRight() { isMovingRight = true; }
+        function stopMovingLeft() { isMovingLeft = false; }
+        function stopMovingRight() { isMovingRight = false; }
+
+        function checkHighScore() {
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('deepSeaHighScore', highScore);
+                highScoreElement.textContent = highScore;
+            }
+        }
+
+        function gameOver() {
+            gameActive = false;
+            
+            // Clear all spawn intervals to stop enemies from spawning
+            clearInterval(gameLoopInterval);
+            clearInterval(sharkInterval);
+            clearInterval(blowfishInterval);
+            clearInterval(bubbleInterval);
+            
+            finalScoreElement.textContent = score;
+            finalGemsElement.textContent = gems;
+            
+            checkHighScore();
+            
+            gameOverScreen.style.display = 'flex';
+        }
+
+        function updateUI() {
+            scoreElement.textContent = score;
+            gemsElement.textContent = gems;
+        }
+
+        // Event listeners
+        restartBtn.addEventListener('click', () => {
+            gameOverScreen.style.display = 'none';
+            characterScreen.style.display = 'flex';
+        });
+
+        // Watch Ad for Extra Life
+        watchAdBtn.addEventListener('click', () => {
+            gameOverScreen.style.display = 'none';
+            adModal.style.display = 'flex';
+            adVideo.currentTime = 0;
+            adVideo.play();
+        });
+
+        // Enable continue button after ad plays for 5 seconds
+        adVideo.addEventListener('timeupdate', () => {
+            if (adVideo.currentTime >= 5) {
+                skipAdBtn.style.display = 'block';
+            }
+        });
+
+        // Continue playing after watching ad
+        skipAdBtn.addEventListener('click', () => {
+            adModal.style.display = 'none';
+            adVideo.pause();
+            skipAdBtn.style.display = 'none';
+            
+            // Resume game with extra life - reset velocity and position player safely
+            gameActive = true;
+            gameOverScreen.style.display = 'none';
+            
+            // Reset movement state
+            isMovingLeft = false;
+            isMovingRight = false;
+            diverVelocity = 0;
+            
+            // Move player to safe position (middle of screen)
+            const gameHeight = gameArea.offsetHeight;
+            const gameWidth = gameArea.offsetWidth;
+            diverPosition.y = gameHeight / 2;
+            diverPosition.x = gameWidth / 2 - 30;
+            const diver = document.getElementById('diver');
+            if (diver) {
+                diver.style.top = diverPosition.y + 'px';
+                diver.style.left = diverPosition.x + 'px';
+            }
+            
+            // Create a kelp bed right under the player so they can rest
+            createSafeZone(diverPosition.x - 35, diverPosition.y + 60, 120, 50);
+            
+            // Restart intervals
+            clearInterval(gameLoopInterval);
+            clearInterval(sharkInterval);
+            clearInterval(blowfishInterval);
+            clearInterval(bubbleInterval);
+            
+            gameLoopInterval = setInterval(gameLoop, 1000 / 60);
+            sharkInterval = setInterval(spawnShark, 3000);
+            blowfishInterval = setInterval(spawnBlowfish, 4000);
+            bubbleInterval = setInterval(createBubble, 500);
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if ((e.key === 'Enter' || e.key === ' ') && !gameActive && startScreen.style.display !== 'none') {
+                e.preventDefault();
+                startScreen.style.display = 'none';
+                characterScreen.style.display = 'flex';
+            }
+            
+            if (!gameActive) return;
+            
+            if (e.key === 'ArrowLeft') {
+                startMovingLeft();
+            } else if (e.key === 'ArrowRight') {
+                startMovingRight();
+            } else if (e.key === ' ' || e.key === 'Spacebar') {
+                e.preventDefault();
+                makeDiverSwim();
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            if (!gameActive) return;
+            
+            if (e.key === 'ArrowLeft') {
+                stopMovingLeft();
+            } else if (e.key === 'ArrowRight') {
+                stopMovingRight();
+            }
+        });
+
+        // Touch controls
+        gameArea.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling/zooming on mobile
+            
+            if (!gameActive) {
+                startScreen.style.display = 'none';
+                characterScreen.style.display = 'flex';
+                return;
+            }
+            
+            const touch = e.touches[0];
+            const x = touch.clientX - gameArea.getBoundingClientRect().left;
+            const width = gameArea.offsetWidth;
+            
+            if (x < width / 3) {
+                startMovingLeft();
+            } else if (x > width * 2/3) {
+                startMovingRight();
+            } else {
+                makeDiverSwim();
+            }
+        }, { passive: false });
+        
+        gameArea.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // Prevent scrolling while playing
+        }, { passive: false });
+        
+        gameArea.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (!gameActive) return;
+            stopMovingLeft();
+            stopMovingRight();
+        }, { passive: false });
+
+        gameArea.addEventListener('mousedown', (e) => {
+            if (!gameActive) {
+                startScreen.style.display = 'none';
+                characterScreen.style.display = 'flex';
+                return;
+            }
+            
+            const x = e.clientX - gameArea.getBoundingClientRect().left;
+            const width = gameArea.offsetWidth;
+            
+            if (x < width / 3) {
+                startMovingLeft();
+            } else if (x > width * 2/3) {
+                startMovingRight();
+            } else {
+                makeDiverSwim();
+            }
+        });
+        
+        gameArea.addEventListener('mouseup', (e) => {
+            if (!gameActive) return;
+            stopMovingLeft();
+            stopMovingRight();
+        });
+    </script>
+</body>
+</html>
